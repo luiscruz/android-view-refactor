@@ -6,6 +6,7 @@ setup(
     py_modules=['android_view_refactor'],
     install_requires=[
         'Click',
+        'lxml',
     ],
     entry_points='''
         [console_scripts]

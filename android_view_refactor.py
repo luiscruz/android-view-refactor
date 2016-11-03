@@ -1,6 +1,6 @@
 import click
-import xml.etree.ElementTree as ET
 from lxml import etree
+from android_constants import ANDROID_VIEW_GROUPS #supported ViewGroups
 
 INVALID_PARAMS = {
     "layout_x"                      : ["AbsoluteLayout"],
@@ -38,24 +38,38 @@ INVALID_PARAMS = {
 NAMESPACE = "{http://schemas.android.com/apk/res/android}"
 
 @click.command()
-@click.option('--refactor/--check', default=True, help='Whether transformations will take place.')
+@click.option('--refactor/--check', default=True, help='Whether refactor will change input.')
+@click.option('--comment', default=False, help='Leave a comment for each refactoring.')
 @click.argument('input')
-def tool(refactor, input):
+def tool(refactor, comment, input):
     """Tool to refactor Android XML views."""
     tree = etree.parse(input)
     for node in tree.iter():
         for attr_name, _ in node.attrib.items():
-            attr_name = attr_name.replace(NAMESPACE,"")
-            mandatory_parent_view_groups = INVALID_PARAMS.get(attr_name)
+            attr_simplename = attr_name.replace(NAMESPACE,"")
+            mandatory_parent_view_groups = INVALID_PARAMS.get(attr_simplename)
             if mandatory_parent_view_groups is not None:
                 parent_view_group = node.getparent()
-                if parent_view_group is not None and parent_view_group.tag not in mandatory_parent_view_groups:
+                if parent_view_group is not None\
+                 and parent_view_group.tag in ANDROID_VIEW_GROUPS\
+                 and parent_view_group.tag not in mandatory_parent_view_groups:
+                    error_msg = "{}:{} Warning: Invalid layout param in a {}: {} [ObsoleteLayoutParam]".format(input, node.sourceline, parent_view_group.tag, attr_simplename)
+                    click.secho(
+                        error_msg,
+                        err=True,
+                        fg="red",
+                    )
                     if refactor:
-                        pass
-                    else:
-                        error_msg = "{}:{} Warning: Invalid layout param in a {}: {} [ObsoleteLayoutParam]".format(input, node.sourceline, parent_view_group.tag, attr_name)
-                        click.secho(
-                            error_msg,
-                            err=True,
-                            fg="red",
-                        )
+                        if comment:
+                            tree.append(
+                                etree.Comment("Removed ObsoleteLayoutParam: {}".format(attr_simplename))
+                            )
+                        node.attrib.pop(attr_name)
+
+    with open(input+"new", "w") as f:
+        tree.write(
+            f,
+            xml_declaration=True,
+            encoding=tree.docinfo.encoding,
+#            pretty_print=True,
+        )

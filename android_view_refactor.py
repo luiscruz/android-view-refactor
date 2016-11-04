@@ -39,7 +39,7 @@ NAMESPACE = "{http://schemas.android.com/apk/res/android}"
 
 @click.command()
 @click.option('--refactor/--check', default=True, help='Whether refactor will change input.')
-@click.option('--comment', default=False, help='Leave a comment for each refactoring.')
+@click.option('--comment', default=False, is_flag=True, help='Leave a comment for each refactoring.')
 @click.argument('input')
 def tool(refactor, comment, input):
     """Tool to refactor Android XML views."""
@@ -61,7 +61,7 @@ def tool(refactor, comment, input):
                     )
                     if refactor:
                         if comment:
-                            tree.append(
+                            node.append(
                                 etree.Comment("Removed ObsoleteLayoutParam: {}".format(attr_simplename))
                             )
                         node.attrib.pop(attr_name)
@@ -71,5 +71,5 @@ def tool(refactor, comment, input):
             f,
             xml_declaration=True,
             encoding=tree.docinfo.encoding,
-#            pretty_print=True,
+            pretty_print=True,
         )

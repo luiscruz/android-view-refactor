@@ -43,7 +43,11 @@ NAMESPACE = "{http://schemas.android.com/apk/res/android}"
 @click.argument('input')
 def tool(refactor, comment, input):
     """Tool to refactor Android XML views."""
-    tree = etree.parse(input)
+    parser = etree.XMLParser(
+       remove_blank_text=True
+    )
+    tree = etree.parse(input, parser)
+    tree_has_changed = False
     for node in tree.iter():
         for attr_name, _ in node.attrib.items():
             attr_simplename = attr_name.replace(NAMESPACE,"")
@@ -60,16 +64,40 @@ def tool(refactor, comment, input):
                         fg="red",
                     )
                     if refactor:
-                        if comment:
-                            node.append(
-                                etree.Comment("Removed ObsoleteLayoutParam: {}".format(attr_simplename))
-                            )
+                        if comment is not None:
+                            comment = etree.Comment("Removed ObsoleteLayoutParam: {}".format(attr_simplename))
+                            node.append(comment)
                         node.attrib.pop(attr_name)
-
-    with open(input+"new", "w") as f:
-        tree.write(
-            f,
+                        tree_has_changed = True
+    if refactor and tree_has_changed:
+        output = etree.tostring(
+            tree,
             xml_declaration=True,
-            encoding=tree.docinfo.encoding,
             pretty_print=True,
+            encoding=tree.docinfo.encoding,
         )
+        output = output.replace("\" ","\"\n")
+        with open(input+"new", "w") as f:
+            parent_tag_line = None
+            for i, line in enumerate(output.splitlines()):
+                line_stripped = line.lstrip(" ")
+                line_ident = len(line) - len(line_stripped)
+                if parent_tag_line is not None:
+                    if line_ident == 0 and line[:2] != "</":
+                        line = (parent_line_ident+2)*" " + line
+                    else:
+                        parent_tag_line = line
+                        parent_line_ident = line_ident
+                        line_stripped = line.lstrip()
+                        if line_stripped[:4] != "<!--" and line_stripped[:2] != "</":
+                            line="\n"+line
+                else:
+                    parent_tag_line = line
+                    parent_line_ident = line_ident
+                print >>f, line
+        # tree.write(
+#             f,
+#             xml_declaration=True,
+#             encoding=tree.docinfo.encoding,
+#             pretty_print=True,
+#         )

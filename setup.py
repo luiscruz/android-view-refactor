@@ -1,15 +1,16 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name='android-view-refactor',
     version='0.1',
-    py_modules=['android_view_refactor'],
+    packages=find_packages(),
+    include_package_data=True,
     install_requires=[
         'Click',
         'lxml',
     ],
     entry_points='''
         [console_scripts]
-        android-view-refactor=android_view_refactor:tool
+        android-view-refactor=android_view_refactor.android_view_refactor:tool
     ''',
 )

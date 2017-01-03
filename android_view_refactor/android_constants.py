@@ -1,7 +1,7 @@
-ANDROID_VIEW_GROUPS = set([ #
-    #direct subclasses of ViewGroup
+ANDROID_VIEW_GROUPS = set([
+    # direct subclasses of ViewGroup
     "AbsoluteLayout",
-#    "AdapterView<T extends Adapter>",
+    # "AdapterView<T extends Adapter>",
     "CoordinatorLayout",
     "DrawerLayout",
     "FragmentBreadCrumbs",
@@ -18,7 +18,7 @@ ANDROID_VIEW_GROUPS = set([ #
     "Toolbar",
     "TvView",
     "ViewPager",
-    #indirect subclasses of ViewGroup
+    # indirect subclasses of ViewGroup
     "AbsListView",
     "AbsSpinner",
     "ActionMenuView",

@@ -127,7 +127,7 @@ def tool(refactor, comment, files):
                 encoding=tree.docinfo.encoding,
             )
             output = output.replace("\" ", "\"\n")
-            with open(input + "new", "w") as f:
+            with open(input, "w") as f:
                 parent_tag_line = None
                 parent_line_ident = None
                 for i, line in enumerate(output.splitlines()):

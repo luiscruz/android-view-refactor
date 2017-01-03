@@ -61,7 +61,7 @@ NAMESPACE = "{http://schemas.android.com/apk/res/android}"
 
 @click.command()
 @click.option(
-    '--refactor/--check', default=True,
+    '--refactor/--check', default=False,
     help='Whether refactor will change input.'
 )
 @click.option(
@@ -77,9 +77,9 @@ def tool(refactor, comment, files):
     for input in files:
         try:
             tree = etree.parse(input, parser)
-        except XMLSyntaxError:
+        except XMLSyntaxError as e:
             click.secho(
-                "Could not parse {}".format(input),
+                "Could not parse {}\n{}".format(input, e.message),
                 err=True,
                 fg="red",
             )
@@ -108,7 +108,7 @@ def tool(refactor, comment, files):
                         click.secho(
                             error_msg,
                             err=True,
-                            fg="red",
+                            fg="yellow",
                         )
                         if refactor:
                             if comment is not None:
